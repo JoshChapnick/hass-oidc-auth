@@ -197,10 +197,12 @@ class OIDCDiscoveryClient:
                 details={"modes": document["response_modes_supported"]},
             )
 
-        # If grant_types_supported is set, should support 'authorization_code'
-        if (
-            "grant_types_supported" in document
-            and "authorization_code" not in document["grant_types_supported"]
+        # If grant_types_supported is set, should support 'authorization_code'.
+        # Cloudflare Access publishes the non-standard
+        # 'authorization_code_with_pkce' label for the same flow; accept it too.
+        if "grant_types_supported" in document and not any(
+            grant in document["grant_types_supported"]
+            for grant in ("authorization_code", "authorization_code_with_pkce")
         ):
             _LOGGER.warning(
                 "Error: Discovery document %s does not support required "
